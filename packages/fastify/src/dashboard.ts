@@ -1,10 +1,30 @@
 import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
-import type { TraceHub } from '@tracelens/core';
+import { verifyDashboardAuth, type TraceHub } from '@tracelens/core';
 import { renderEmbeddedHtml } from '@tracelens/core';
-import { toOpenTelemetryResourceSpans, toHar, toCurlCommand } from '@tracelens/protocol';
+import { toOpenTelemetryResourceSpans, toHar, toCurlCommand, type DashboardAuthOptions } from '@tracelens/protocol';
 import crypto from 'node:crypto';
 
-export function registerFastifyDashboard(fastify: FastifyInstance, hub: TraceHub, endpoint = '/__lens'): void {
+export function registerFastifyDashboard(
+  fastify: FastifyInstance,
+  hub: TraceHub,
+  endpoint = '/__lens',
+  authOptions?: DashboardAuthOptions
+): void {
+  if (authOptions) {
+    fastify.addHook('onRequest', async (req: FastifyRequest, reply: FastifyReply) => {
+      if (req.url.startsWith(endpoint)) {
+        const isAuthorized = verifyDashboardAuth(
+          { headers: req.headers as Record<string, string>, query: req.query as Record<string, unknown>, url: req.url },
+          authOptions
+        );
+        if (!isAuthorized) {
+          reply.header('WWW-Authenticate', 'Basic realm="TraceLens Dashboard"');
+          reply.status(401).send('Unauthorized: TraceLens Dashboard is protected.');
+        }
+      }
+    });
+  }
+
   // 1. SSE Realtime stream
   fastify.get(`${endpoint}/events`, (req: FastifyRequest, reply: FastifyReply) => {
     const rawRes = reply.raw;

@@ -68,4 +68,23 @@ describe('TraceContext & AsyncLocalStorage', () => {
     expect(failedSpan.status.code).toBe('ERROR');
     expect(failedSpan.status.message).toBe('Database connection timeout');
   });
+
+  it('should capture correlated logs and attach to active span', async () => {
+    const { trace, rootSpan } = setupMockState();
+    const { addLog, enableConsoleCapture } = await import('./context.js');
+
+    enableConsoleCapture();
+
+    await traceStorage.run({ trace, activeSpan: rootSpan, spanStack: [rootSpan] }, async () => {
+      addLog('warn', 'Payment gateway high latency', { retries: 2 });
+      console.log('User payment processed successfully');
+    });
+
+    expect(rootSpan.logs).toBeDefined();
+    expect(rootSpan.logs).toHaveLength(2);
+    expect(rootSpan.logs?.[0].level).toBe('warn');
+    expect(rootSpan.logs?.[0].message).toBe('Payment gateway high latency');
+    expect(rootSpan.logs?.[1].level).toBe('info');
+    expect(rootSpan.logs?.[1].message).toBe('User payment processed successfully');
+  });
 });

@@ -80,6 +80,11 @@ export function renderEmbeddedHtml(endpoint: string): string {
         <span class="text-gray-500">Errors:</span>
         <span id="metricErrors" class="font-bold text-gray-400">0 (0%)</span>
       </div>
+      <div class="h-3 w-px bg-gray-800"></div>
+      <div class="flex items-center space-x-1.5" title="Live Throughput & Latency Trend">
+        <span class="text-gray-500 text-[10px]">Trend:</span>
+        <svg id="liveSparkline" class="w-16 h-4 overflow-visible"></svg>
+      </div>
     </div>
 
     <div class="flex items-center space-x-3">
@@ -351,6 +356,14 @@ export function renderEmbeddedHtml(endpoint: string): string {
             </button>
           </div>
           <div id="modalSqlCode" class="p-3 bg-gray-950 rounded-lg border border-emerald-500/30 font-mono text-[11px] leading-relaxed overflow-x-auto whitespace-pre-wrap text-gray-200"></div>
+        </div>
+
+        <!-- Correlated Logs Section (Logs sinh ra trong span này) -->
+        <div id="modalLogsSection" class="hidden">
+          <div class="flex items-center justify-between mb-1">
+            <span class="text-gray-400 block font-bold">📜 Correlated Logs:</span>
+          </div>
+          <div id="modalLogsContent" class="p-2.5 bg-gray-950 rounded-lg border border-indigo-500/30 max-h-40 overflow-y-auto space-y-1 text-[11px] font-mono"></div>
         </div>
 
         <div>
@@ -796,6 +809,30 @@ export function renderEmbeddedHtml(endpoint: string): string {
       metricP95.innerText = \`\${p95} ms\`;
       metricErrors.innerText = \`\${errorCount} (\${errorRate}%)\`;
       metricErrors.className = errorCount > 0 ? 'font-bold text-rose-400' : 'font-bold text-gray-400';
+
+      // Live SVG Sparkline Chart rendering
+      const sparkline = document.getElementById('liveSparkline');
+      if (sparkline) {
+        const recent = traces.slice(0, 10).reverse();
+        if (recent.length > 1) {
+          const maxVal = Math.max(20, ...recent.map(r => r.durationMs || 1));
+          const w = 64;
+          const h = 16;
+          const stepX = w / (recent.length - 1);
+          const points = recent.map((r, i) => {
+            const x = (i * stepX).toFixed(1);
+            const y = (h - ((r.durationMs || 1) / maxVal) * (h - 4) - 2).toFixed(1);
+            return \`\${x},\${y}\`;
+          }).join(' ');
+          const lastIdx = recent.length - 1;
+          const lastX = (lastIdx * stepX).toFixed(1);
+          const lastY = (h - ((recent[lastIdx].durationMs || 1) / maxVal) * (h - 4) - 2).toFixed(1);
+          sparkline.innerHTML = \`
+            <polyline fill="none" stroke="#818CF8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" points="\${points}" />
+            <circle cx="\${lastX}" cy="\${lastY}" r="2" fill="#38BDF8" />
+          \`;
+        }
+      }
     }
 
     function filterTraces(items) {
@@ -1445,6 +1482,31 @@ export function renderEmbeddedHtml(endpoint: string): string {
         <div class="font-bold \${isError ? 'text-rose-400' : 'text-emerald-400'}">\${span.status?.code || 'UNSET'}</div>
         <div class="text-gray-300 mt-1">\${span.status?.message || 'Execution completed without unhandled errors.'}</div>
       \`;
+
+      // Correlated Logs rendering
+      const modalLogsSection = document.getElementById('modalLogsSection');
+      const modalLogsContent = document.getElementById('modalLogsContent');
+      if (modalLogsSection && modalLogsContent) {
+        if (span.logs && span.logs.length > 0) {
+          modalLogsContent.innerHTML = span.logs.map(l => {
+            let badgeClass = 'bg-blue-500/20 text-blue-400 border-blue-500/30';
+            if (l.level === 'warn') badgeClass = 'bg-amber-500/20 text-amber-400 border-amber-500/30';
+            if (l.level === 'error') badgeClass = 'bg-rose-500/20 text-rose-400 border-rose-500/30';
+            const timeStr = new Date(l.timestamp).toLocaleTimeString();
+            return \`
+              <div class="flex items-start space-x-2 py-1 border-b border-gray-900 last:border-0 font-mono text-[11px]">
+                <span class="text-[9px] px-1.5 py-0.5 rounded border \${badgeClass} uppercase font-bold shrink-0">\${l.level}</span>
+                <span class="text-gray-500 text-[10px] shrink-0">\${timeStr}</span>
+                <span class="text-gray-200 break-all">\${l.message}</span>
+              </div>
+            \`;
+          }).join('');
+          modalLogsSection.classList.remove('hidden');
+        } else {
+          modalLogsSection.classList.add('hidden');
+        }
+      }
+
       modalSpanAttributes.innerText = JSON.stringify(span.attributes || {}, null, 2);
       inspectorModal.classList.remove('hidden');
     }

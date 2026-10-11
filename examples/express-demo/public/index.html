@@ -109,6 +109,40 @@
           Truy Vấn Qua Prisma
         </button>
       </div>
+
+      <!-- Card 5: Real-time WebSocket -->
+      <div class="bg-gray-900/60 border border-gray-800 rounded-2xl p-6 hover:border-pink-500/40 transition">
+        <div class="flex items-center space-x-3 mb-4">
+          <div class="w-10 h-10 rounded-xl bg-pink-500/10 text-pink-400 flex items-center justify-center text-xl font-bold">⚡</div>
+          <div>
+            <h3 class="font-bold text-white text-base">Real-time WebSocket</h3>
+            <span class="text-xs text-gray-500 font-mono">POST /api/socket-test (@tracelens/plugins/websocket)</span>
+          </div>
+        </div>
+        <p class="text-gray-400 text-xs mb-5">
+          Mô phỏng Component <code class="text-pink-400 font-mono">OrderTrackerModal</code> phát sự kiện WebSocket hai chiều mang distributed trace context.
+        </p>
+        <button id="btnSocket" class="w-full py-2.5 bg-pink-600 hover:bg-pink-500 text-white rounded-xl text-xs font-bold transition shadow-md shadow-pink-600/20">
+          Phát Socket Event Real-time
+        </button>
+      </div>
+
+      <!-- Card 6: Error / Client Diagnostics -->
+      <div class="bg-gray-900/60 border border-gray-800 rounded-2xl p-6 hover:border-rose-500/40 transition">
+        <div class="flex items-center space-x-3 mb-4">
+          <div class="w-10 h-10 rounded-xl bg-rose-500/10 text-rose-400 flex items-center justify-center text-xl font-bold">💥</div>
+          <div>
+            <h3 class="font-bold text-white text-base">Client Error & Correlated Logs</h3>
+            <span class="text-xs text-gray-500 font-mono">GET /api/error-test (500 Error + Diagnostics)</span>
+          </div>
+        </div>
+        <p class="text-gray-400 text-xs mb-5">
+          Kích hoạt lỗi máy chủ 500 kèm log chẩn đoán để kiểm chứng AI Advisor, Webhook Alert và tab Correlated Logs trên Inspector.
+        </p>
+        <button id="btnError" class="w-full py-2.5 bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-xs font-bold transition shadow-md shadow-rose-600/20">
+          Kích Hoạt Lỗi 500 Test
+        </button>
+      </div>
     </div>
 
     <!-- Live Result Output -->
@@ -210,6 +244,22 @@
     document.getElementById('btnPrisma').addEventListener('click', () => {
       handleAction('btnPrisma', 'Sending GET /api/prisma-test...', 'Prisma query finished', () => {
         return traceFetch('/api/prisma-test', {}, 'ProfileViewer', 'load_profile');
+      });
+    });
+
+    document.getElementById('btnSocket').addEventListener('click', () => {
+      handleAction('btnSocket', 'Sending POST /api/socket-test...', 'Socket event emitted & traced', () => {
+        return traceFetch('/api/socket-test', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ event: 'order:status_update' })
+        }, 'OrderTrackerModal', 'socket_emit_status');
+      });
+    });
+
+    document.getElementById('btnError').addEventListener('click', () => {
+      handleAction('btnError', 'Sending GET /api/error-test (expecting 500)...', 'Error response received', () => {
+        return traceFetch('/api/error-test', {}, 'ErrorTriggerButton', 'trigger_server_error');
       });
     });
   </script>

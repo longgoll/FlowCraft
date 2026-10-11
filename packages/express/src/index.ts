@@ -1,6 +1,6 @@
 import type { Express } from 'express';
 import express from 'express';
-import { TraceHub, step } from '@tracelens/core';
+import { TraceHub, step, enableConsoleCapture } from '@tracelens/core';
 import type { TraceLensInitOptions } from '@tracelens/protocol';
 import { createTraceMiddleware } from './middleware.js';
 import { registerDashboardRoutes } from './dashboard-routes.js';
@@ -43,11 +43,19 @@ export class TraceLens {
     const maxHistory = options.maxHistory || 100;
     this.hub = new TraceHub(maxHistory);
 
+    if (options.webhookAlertUrl) {
+      this.hub.setWebhookAlertUrl(options.webhookAlertUrl);
+    }
+
+    if (options.captureConsole !== false) {
+      enableConsoleCapture();
+    }
+
     // Kích hoạt toàn bộ auto-detection plugins (Fetch, DB, Cache...)
     enableAutoPlugins();
 
     // 1. Gắn Trace Dashboard endpoints trước
-    registerDashboardRoutes(app, this.hub, endpoint);
+    registerDashboardRoutes(app, this.hub, endpoint, options.auth);
 
     // 2. Gắn Root Tracing Middleware
     app.use(createTraceMiddleware(this.hub, options));

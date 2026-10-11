@@ -46,12 +46,15 @@ app.get('/api/users', authMiddleware, async (req, res) => {
 });
 
 app.post('/api/orders', authMiddleware, async (req, res) => {
+  console.info(`🛒 New order checkout initiated for items count: ${req.body?.items || 1}`);
+
   // 1. Bước nghiệp vụ nội bộ (Business Step Logic)
   await tracelens.step('Validate Cart & Customer Eligibility', async () => {
     await new Promise((r) => setTimeout(r, 8));
   });
 
   // 2. Check Redis cache
+  console.warn('⚠️ Checking Redis cache key: stock:item_12');
   await startSpan('redis.get stock:item_12', 'CLIENT', { 'db.system': 'redis', 'cache.hit': true }, async () => {
     await new Promise((r) => setTimeout(r, 4));
   });
@@ -83,6 +86,7 @@ app.post('/api/orders', authMiddleware, async (req, res) => {
   }
 
   // 4. Insert DB của Order Service
+  console.log('💾 Writing order ord_9901 into PostgreSQL database');
   await startSpan('db.orders.insert', 'CLIENT', { 'db.system': 'postgresql' }, async () => {
     await new Promise((r) => setTimeout(r, 35));
   });
@@ -94,6 +98,27 @@ app.post('/api/orders', authMiddleware, async (req, res) => {
     inventory: inventoryData,
     notification: notificationData,
   });
+});
+
+// Route kiểm chứng Real-time WebSocket Tracing Plugin
+app.post('/api/socket-test', async (req, res) => {
+  const { injectSocketTrace, withSocketContext } = await import('@tracelens/plugins');
+
+  const socketPayload = injectSocketTrace(
+    { message: 'Live order status update', orderId: 'ord_9901', status: 'shipped' },
+    'order:status_update',
+    'room_order_9901'
+  );
+
+  console.info('⚡ Emitting real-time WebSocket event: order:status_update');
+
+  const result = await withSocketContext('order:status_update', socketPayload, async () => {
+    await new Promise((r) => setTimeout(r, 18));
+    console.log('📬 Client acknowledgment received via socket channel');
+    return { delivered: true, timestamp: Date.now() };
+  });
+
+  res.json({ success: true, socketResult: result, payload: socketPayload });
 });
 
 

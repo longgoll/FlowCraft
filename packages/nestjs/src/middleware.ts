@@ -1,15 +1,17 @@
-import type { TraceRecord, SpanData, ClientMetadata } from '@tracelens/protocol';
+import type { TraceRecord, SpanData, ClientMetadata, SamplingOptions } from '@tracelens/protocol';
 import { parseTraceParent, generateTraceId, generateSpanId, sanitizeData } from '@tracelens/protocol';
-import { traceStorage, TraceHub } from '@tracelens/core';
+import { traceStorage, TraceHub, Sampler } from '@tracelens/core';
 
 export interface NestMiddlewareOptions {
   hub: TraceHub;
   serviceName?: string;
   excludePaths?: string[];
+  sampling?: SamplingOptions;
 }
 
 export function createTraceLensNestMiddleware(options: NestMiddlewareOptions) {
   const { hub, serviceName = 'nestjs-app', excludePaths = ['/__lens'] } = options;
+  const sampler = new Sampler(options.sampling);
 
   return function traceLensMiddleware(req: any, res: any, next: () => void) {
     const url = req.originalUrl || req.url || '/';
@@ -18,6 +20,8 @@ export function createTraceLensNestMiddleware(options: NestMiddlewareOptions) {
     if (excludePaths.some((p) => url.startsWith(p))) {
       return next();
     }
+
+    const headSampled = sampler.shouldSampleHead();
 
     const headerTraceParent = req.headers?.['traceparent'];
     const parsedW3c = headerTraceParent ? parseTraceParent(headerTraceParent) : null;
@@ -100,6 +104,10 @@ export function createTraceLensNestMiddleware(options: NestMiddlewareOptions) {
       } else {
         rootSpan.status = { code: 'OK' };
         trace.status = { code: 'OK' };
+      }
+
+      if (!sampler.shouldKeepTrace(trace, headSampled)) {
+        return;
       }
 
       hub.recordTrace(trace);

@@ -18,8 +18,14 @@ export class TraceHub {
     this.buffer = new RingBuffer<TraceRecord>(maxHistory);
   }
 
+  private webhookAlertUrl?: string;
+
   setExporter(exporter: OtlpHttpExporter): void {
     this.exporter = exporter;
+  }
+
+  setWebhookAlertUrl(url?: string): void {
+    this.webhookAlertUrl = url;
   }
 
   /**
@@ -29,6 +35,23 @@ export class TraceHub {
     this.buffer.push(trace);
     this.broadcast('trace:new', trace);
     this.exporter?.enqueue(trace);
+
+    // Gửi Webhook alert (Slack/Discord/Telegram) nếu trace bị lỗi
+    if (this.webhookAlertUrl && trace.status.code === 'ERROR') {
+      try {
+        fetch(this.webhookAlertUrl, {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({
+            text: `🚨 [TraceLens Alert] Error detected on ${trace.serviceName || 'Service'}: ${trace.name} - ${trace.status.message || 'Unknown error'}`,
+            traceId: trace.id,
+            durationMs: trace.durationMs,
+          }),
+        }).catch(() => {});
+      } catch {
+        // ignore
+      }
+    }
   }
 
   /**

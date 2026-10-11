@@ -1,5 +1,5 @@
 import { AsyncLocalStorage } from 'node:async_hooks';
-import type { SpanData, TraceRecord } from '@tracelens/protocol';
+import type { SpanData, TraceRecord, SpanLog } from '@tracelens/protocol';
 import { generateTraceId, generateSpanId } from '@tracelens/protocol';
 
 export interface TraceContextState {
@@ -29,6 +29,65 @@ export function step<T>(name: string, fn: (span: SpanData) => T): T {
  */
 export function getActiveSpan(): SpanData | undefined {
   return traceStorage.getStore()?.activeSpan;
+}
+
+/**
+ * Ghi log trực tiếp gắn liền vào Active Span hiện tại
+ */
+export function addLog(
+  level: SpanLog['level'],
+  message: string,
+  attributes?: Record<string, unknown>
+): void {
+  const span = getActiveSpan();
+  if (!span) return;
+  if (!span.logs) {
+    span.logs = [];
+  }
+  span.logs.push({
+    timestamp: Date.now(),
+    level,
+    message,
+    attributes,
+  });
+}
+
+let consoleCaptureEnabled = false;
+
+/**
+ * Tự động bọc console.log/info/warn/error để gắn log vào Active Span
+ */
+export function enableConsoleCapture(): void {
+  if (consoleCaptureEnabled) return;
+  consoleCaptureEnabled = true;
+
+  const originalLog = console.log;
+  const originalInfo = console.info;
+  const originalWarn = console.warn;
+  const originalError = console.error;
+
+  const formatArgs = (args: any[]) =>
+    args.map((a) => (typeof a === 'object' ? JSON.stringify(a) : String(a))).join(' ');
+
+  console.log = function (...args: any[]) {
+    addLog('info', formatArgs(args));
+    return originalLog.apply(this, args);
+  };
+
+  console.info = function (...args: any[]) {
+    addLog('info', formatArgs(args));
+    return originalInfo.apply(this, args);
+  };
+
+  console.warn = function (...args: any[]) {
+    addLog('warn', formatArgs(args));
+    return originalWarn.apply(this, args);
+  };
+
+  console.error = function (...args: any[]) {
+    addLog('error', formatArgs(args));
+    return originalError.apply(this, args);
+  };
 }
 
 /**

@@ -164,6 +164,36 @@ pnpm demo:fastify
 
 ---
 
+## 🚀 Cài Đặt Nhanh 30 Giây Với TraceLens CLI
+
+Bạn có thể tự động phân tích và tạo cấu hình cho dự án hiện tại chỉ bằng một lệnh:
+
+```bash
+# Phân tích Framework và in code cấu hình 2 dòng:
+npx @tracelens/cli init
+
+# Kiểm tra môi trường Node.js & Diagnostic:
+npx @tracelens/cli doctor
+```
+
+---
+
+## ⚖️ Bảng So Sánh Tính Năng (Feature Comparison)
+
+| Tính năng | ⚡ TraceLens | 🌐 OpenTelemetry | 🐶 Datadog | 🩸 Sentry |
+|---|---|---|---|---|
+| **Mục đích chính** | **Local & Prod Full-Stack DX** | Chuẩn viễn thông thu thập | Cloud APM có phí | Crash & Error Tracking |
+| **Cài đặt ban đầu** | **1 dòng code (Zero setup)** | Rất phức tạp (Collector, SDKs) | Cài Agent daemon | Cài SDK + DSN key |
+| **Tốn tài nguyên / Cần Docker** | **Không (In-Memory RingBuffer)** | Có (Cần Jaeger/Collector) | Có (Nặng máy) | Không |
+| **Giao diện Dashboard Nhúng** | **Có sẵn (`/__lens`)** | Không có (Phải dựng UI riêng) | Giao diện Cloud | Giao diện Cloud |
+| **Live Topology Map** | **Có (Real-time SVG Flow)** | Phải cài thêm Grafana/Kiali | Có | Không |
+| **AI Performance Advisor** | **Có (N+1, Cache Miss, I/O)** | Không | Phải mua thêm add-on | Không |
+| **Correlated Logs** | **Tự động gắn vào Span** | Phải cấu hình FluentBit/OTel | Tính phí theo log volume | Có |
+| **W3C `traceparent` Chuẩn** | **100% Tương thích** | 100% | 100% | Tương thích |
+| **Chi phí** | **100% Miễn phí & Open-Source** | Miễn phí | Rất đắt | Miễn phí có giới hạn |
+
+---
+
 ## 🗺️ Lộ trình Phát triển (Roadmap)
 
 - [x] **Phase 1: Foundation & Express MVP** (W3C protocol, AsyncLocalStorage, Ring Buffer, SSE Dashboard)
@@ -172,10 +202,12 @@ pnpm demo:fastify
 - [x] **Phase 4: Distributed Microservices Correlation** (Inter-service HTTP tracing + Central Hub Ingest)
 - [x] **Phase 5: Adapters cho Fastify & NestJS** (`@tracelens/fastify` & `@tracelens/nestjs` with `@TraceSpan` decorator)
 - [x] **Phase 6: OTel Exporter & Live Exporters** (Xuất OTLP JSON / HAR / cURL + Background OTLP HTTP Push tới Jaeger / SigNoz)
-- [x] **Phase 7: Advanced Visualizers** (Hierarchical Flame Graph, Span Diagnostic Inspector Modal, Queue/Job Tracing)
+- [x] **Phase 7: Advanced Visualizers & AI Advisor** (Flame Graph, Span Diagnostic, AI Advisor, Replay, Diff, SQL Highlight)
+- [x] **Phase 8: Production Hardening, Unified Logs & CLI** (Head/Tail Sampling, Auth Guard, Correlated Logs, Live Sparkline, WebSocket Tracing, `@tracelens/cli`)
 
 ---
 
 ## 📄 Bản quyền (License)
 
 Dự án được phân phối dưới giấy phép [MIT](LICENSE).
+

@@ -1,11 +1,32 @@
 import express, { type Express, type Request, type Response } from 'express';
-import type { TraceHub } from '@tracelens/core';
-import { toOpenTelemetryResourceSpans, toHar, toCurlCommand } from '@tracelens/protocol';
+import { verifyDashboardAuth, type TraceHub } from '@tracelens/core';
+import { toOpenTelemetryResourceSpans, toHar, toCurlCommand, type DashboardAuthOptions } from '@tracelens/protocol';
 import crypto from 'node:crypto';
 import { renderEmbeddedHtml } from './ui-template.js';
 
 
-export function registerDashboardRoutes(app: Express, hub: TraceHub, endpoint = '/__lens'): void {
+export function registerDashboardRoutes(
+  app: Express,
+  hub: TraceHub,
+  endpoint = '/__lens',
+  authOptions?: DashboardAuthOptions
+): void {
+  // Middleware xác thực bảo vệ Dashboard UI & Ingest API nếu có cấu hình auth
+  if (authOptions) {
+    app.use(endpoint, (req: Request, res: Response, next) => {
+      const isAuthorized = verifyDashboardAuth(
+        { headers: req.headers as Record<string, string>, query: req.query as Record<string, unknown>, url: req.url },
+        authOptions
+      );
+      if (!isAuthorized) {
+        res.setHeader('WWW-Authenticate', 'Basic realm="TraceLens Dashboard"');
+        res.status(401).send('Unauthorized: TraceLens Dashboard is protected.');
+        return;
+      }
+      next();
+    });
+  }
+
   // 1. SSE Realtime stream
   app.get(`${endpoint}/events`, (req: Request, res: Response) => {
     res.setHeader('Content-Type', 'text/event-stream');

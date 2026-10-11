@@ -9,16 +9,19 @@ import {
   type SpanData,
   type TraceLensInitOptions,
 } from '@tracelens/protocol';
-import { traceStorage, type TraceHub, type TraceContextState } from '@tracelens/core';
+import { traceStorage, Sampler, type TraceHub, type TraceContextState } from '@tracelens/core';
 
 export function createTraceMiddleware(hub: TraceHub, options: TraceLensInitOptions = {}) {
   const endpoint = options.endpoint || '/__lens';
+  const sampler = new Sampler(options.sampling);
 
   return function tracelensMiddleware(req: Request, res: Response, next: NextFunction) {
     // Bỏ qua các request nội bộ của chính Dashboard UI
     if (req.path.startsWith(endpoint)) {
       return next();
     }
+
+    const headSampled = sampler.shouldSampleHead();
 
     // 1. Kiểm tra header W3C `traceparent` từ upstream (frontend hoặc gateway)
     const incomingTraceParent = req.headers['traceparent'] as string | undefined;
@@ -117,6 +120,11 @@ export function createTraceMiddleware(hub: TraceHub, options: TraceLensInitOptio
         if (!s.serviceName) {
           s.serviceName = serviceName;
         }
+      }
+
+      // Kiểm tra lấy mẫu Tail Sampling (bỏ qua nếu không được chọn)
+      if (!sampler.shouldKeepTrace(traceRecord, headSampled)) {
+        return;
       }
 
       // Lưu trace vào RingBuffer nội bộ

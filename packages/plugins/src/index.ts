@@ -6,4 +6,5 @@ export * from './database/mongoose.js';
 export * from './cache/redis.js';
 export * from './orm/prisma.js';
 export * from './queue/index.js';
+export * from './websocket/index.js';
 export * from './auto.js';

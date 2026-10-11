@@ -10,7 +10,7 @@ import {
   type TraceLensInitOptions,
   type ClientMetadata,
 } from '@tracelens/protocol';
-import { TraceHub, traceStorage, type TraceContextState } from '@tracelens/core';
+import { TraceHub, traceStorage, Sampler, enableConsoleCapture, type TraceContextState } from '@tracelens/core';
 import { registerFastifyDashboard } from './dashboard.js';
 import { enableAutoPlugins } from '@tracelens/plugins';
 
@@ -24,12 +24,20 @@ export async function tracelensFastifyPlugin(
   const endpoint = options.endpoint || '/__lens';
   const serviceName = options.serviceName || 'Fastify App';
   const hub = new TraceHub(options.maxHistory || 100);
+  const sampler = new Sampler(options.sampling);
+
+  if (options.webhookAlertUrl) {
+    hub.setWebhookAlertUrl(options.webhookAlertUrl);
+  }
+  if (options.captureConsole !== false) {
+    enableConsoleCapture();
+  }
 
   // Kích hoạt plugins tự động (outgoing fetch, DB, redis, prisma...)
   enableAutoPlugins();
 
-  // Đăng ký dashboard routes
-  registerFastifyDashboard(fastify, hub, endpoint);
+  // Đăng ký dashboard routes kèm cấu hình auth
+  registerFastifyDashboard(fastify, hub, endpoint, options.auth);
 
   // Hook 1: onRequest - Khởi tạo Trace Context
   fastify.addHook('onRequest', async (req: FastifyRequest) => {
@@ -101,6 +109,9 @@ export async function tracelensFastifyPlugin(
       },
       spans: [rootSpan],
     };
+
+    const headSampled = sampler.shouldSampleHead();
+    (req as any)['tracelens.headSampled'] = headSampled;
 
     const state: TraceContextState = {
       trace,
@@ -213,6 +224,12 @@ export async function tracelensFastifyPlugin(
       state.trace.status = { code: 'ERROR', message: `HTTP ${statusCode}` };
     } else if (state.trace.status.code === 'UNSET') {
       state.trace.status = { code: 'OK' };
+    }
+
+    // Kiểm tra lấy mẫu Tail Sampling (bỏ qua nếu không được chọn)
+    const headSampled = (req as any)['tracelens.headSampled'] !== false;
+    if (!sampler.shouldKeepTrace(state.trace, headSampled)) {
+      return;
     }
 
     // Ghi vào Hub bộ nhớ RAM local

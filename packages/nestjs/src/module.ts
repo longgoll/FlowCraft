@@ -1,4 +1,5 @@
 import { TraceHub } from '@tracelens/core';
+import type { SamplingOptions } from '@tracelens/protocol';
 import { enableAutoPlugins } from '@tracelens/plugins';
 import { TraceLensInterceptor } from './interceptor.js';
 import { createTraceLensNestMiddleware } from './middleware.js';
@@ -9,6 +10,7 @@ export interface TraceLensModuleOptions {
   serviceName?: string;
   excludePaths?: string[];
   autoPlugins?: boolean;
+  sampling?: SamplingOptions;
 }
 
 export class TraceLensModule {
@@ -49,6 +51,7 @@ export class TraceLensModule {
       hub,
       serviceName: options?.serviceName || 'nestjs-service',
       excludePaths: options?.excludePaths || ['/__lens'],
+      sampling: options?.sampling,
     });
   }
 }

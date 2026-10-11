@@ -223,6 +223,23 @@ Mỗi Trace tuân thủ định dạng chuẩn quốc tế:
 - [x] **Trace Differential Comparison (`⚖️ Diff`)**: So sánh trực quan Trace A vs Trace B với Δ Latency (-65% FASTER 🚀) và bảng đối chiếu Span-by-span.
 - [x] **SQL Formatter & Syntax Highlighter**: Tự động nhận diện và tô màu cú pháp câu truy vấn SQL (Postgres, MySQL, Prisma) kèm nút Copy tiện lợi.
 
+### 📌 Giai đoạn 7: Production-Grade Hardening, Advanced Frontend SDK & Real-time Protocols (Done 100%)
+- [x] **Nâng cấp Toàn diện Frontend SDK ([`@tracelens/browser`](file:///f:/Dev/product/FlowCraft/packages/browser))**:
+  - Hỗ trợ song song cả `window.fetch` và `XMLHttpRequest` (tự động bắt 100% request từ Axios, jQuery, XHR clients).
+  - Tự động bắt lỗi unhandled trên trình duyệt (`window.onerror`, `unhandledrejection`) và gắn kèm metadata vào trace.
+  - Đo lường hiệu năng mạng trình duyệt: DNS, TCP, TTFB, DOM Interactive, Page Load (`getNavigationPerformance`).
+  - Cung cấp React helpers & HOF: `useTraceAction()`, `withTraceAction()`, `createTraceHeaders()`.
+- [x] **Cơ chế Lấy mẫu Tải cao (Head & Tail/Adaptive Sampling)**:
+  - Class [`Sampler`](file:///f:/Dev/product/FlowCraft/packages/core/src/sampling.ts) tích hợp vào Express, Fastify và NestJS.
+  - Hỗ trợ `sampleRate` (0.0 - 1.0) giảm tải RAM/CPU khi traffic lớn.
+  - **Tail Sampling thông minh**: Tự động giữ lại 100% trace bị lỗi (`alwaysSampleErrors`) hoặc trace bị chậm vượt ngưỡng (`slowLatencyThresholdMs`).
+- [x] **Bảo vệ Dashboard Security (Auth Guard)**:
+  - Hàm [`verifyDashboardAuth`](file:///f:/Dev/product/FlowCraft/packages/core/src/auth.ts) bảo vệ Dashboard `/__lens` và các Ingest API.
+  - Hỗ trợ HTTP Basic Auth (`username`/`password`), Bearer Token, Query param `?token=` và custom validator function.
+- [x] **Plugin Real-time WebSocket & Socket.io ([`@tracelens/plugins/websocket`](file:///f:/Dev/product/FlowCraft/packages/plugins/src/websocket))**:
+  - Tiện ích `injectSocketTrace`, `extractSocketTrace`, `withSocketContext` kết nối trace liên mạch qua luồng real-time socket events.
+- [x] **Kiểm thử Tự động Mở rộng**: 15/15 test suites, 47/47 tests passed 100%.
+
 ---
 
 ## 6. Trải nghiệm Lập trình viên (DX - Developer Experience)
