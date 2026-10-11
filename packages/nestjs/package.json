@@ -1,0 +1,26 @@
+{
+  "name": "@tracelens/nestjs",
+  "version": "0.1.0",
+  "description": "TraceLens adapter and decorators for NestJS with zero-configuration and live dashboard",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "clean": "rimraf dist"
+  },
+  "dependencies": {
+    "@tracelens/protocol": "workspace:*",
+    "@tracelens/core": "workspace:*",
+    "@tracelens/plugins": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.2"
+  }
+}

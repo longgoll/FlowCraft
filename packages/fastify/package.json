@@ -1,0 +1,30 @@
+{
+  "name": "@tracelens/fastify",
+  "version": "0.1.0",
+  "description": "TraceLens adapter for Fastify with zero configuration and live dashboard",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "clean": "rimraf dist"
+  },
+  "dependencies": {
+    "@tracelens/protocol": "workspace:*",
+    "@tracelens/core": "workspace:*",
+    "@tracelens/plugins": "workspace:*"
+  },
+  "peerDependencies": {
+    "fastify": ">=4.0.0"
+  },
+  "devDependencies": {
+    "fastify": "^5.12.5",
+    "typescript": "^5.8.2"
+  }
+}

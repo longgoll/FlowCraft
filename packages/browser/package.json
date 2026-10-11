@@ -1,0 +1,24 @@
+{
+  "name": "@tracelens/browser",
+  "version": "0.1.0",
+  "description": "Zero-config Frontend Browser SDK for TraceLens (React, Vue, Next.js, Vanilla JS)",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "clean": "rimraf dist"
+  },
+  "dependencies": {
+    "@tracelens/protocol": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.2"
+  }
+}

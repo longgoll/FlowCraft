@@ -1,0 +1,27 @@
+{
+  "name": "tracelens-monorepo",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Zero-lock-in Local-first Distributed Tracing & Observability Platform",
+  "packageManager": "pnpm@10.4.1",
+  "type": "module",
+  "scripts": {
+    "build": "pnpm -r run build",
+    "dev": "pnpm -r --parallel run dev",
+    "test": "vitest run",
+    "demo": "concurrently -k -n order,inventory,notify -c blue,green,magenta \"pnpm demo:order\" \"pnpm demo:inventory\" \"pnpm demo:fastify\"",
+    "demo:order": "pnpm --filter express-demo start",
+    "demo:inventory": "pnpm --filter inventory-service start",
+    "demo:fastify": "pnpm --filter fastify-demo start",
+    "clean": "pnpm -r run clean"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.9",
+    "concurrently": "^10.0.6",
+    "fastify": "^5.12.5",
+    "rimraf": "^6.0.1",
+    "tsx": "^4.19.3",
+    "typescript": "^5.8.2",
+    "vitest": "^5.0.3"
+  }
+}

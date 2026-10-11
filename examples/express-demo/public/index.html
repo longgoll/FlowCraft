@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FlowCraft Web Store (TraceLens Frontend Demo)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { background-color: #0B0F19; color: #E2E8F0; font-family: 'Plus Jakarta Sans', sans-serif; }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between">
+  <!-- Top Bar -->
+  <header class="border-b border-gray-800 bg-gray-950/60 backdrop-blur px-6 py-4 flex items-center justify-between">
+    <div class="flex items-center space-x-3">
+      <span class="text-2xl">🛍️</span>
+      <div>
+        <h1 class="font-bold text-gray-100 text-lg">FlowCraft Store</h1>
+        <span class="text-xs text-gray-400">Frontend React Simulation (Connected to TraceLens)</span>
+      </div>
+    </div>
+    <a href="/__lens" target="_blank" class="px-4 py-2 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white rounded-lg text-xs font-bold transition flex items-center space-x-2 shadow-lg shadow-indigo-500/20">
+      <span>⚡ Mở TraceLens Inspector</span>
+      <span>↗</span>
+    </a>
+  </header>
+
+  <!-- Main Store Content -->
+  <main class="max-w-4xl mx-auto w-full p-8 flex-1">
+    <div class="mb-8 text-center">
+      <span class="px-3 py-1 rounded-full text-xs font-mono font-medium bg-violet-500/10 text-violet-400 border border-violet-500/20">
+        End-to-End Tracing Demo
+      </span>
+      <h2 class="text-2xl font-bold text-white mt-3">Thử Nghiệm Tương Tác Người Dùng</h2>
+      <p class="text-gray-400 text-sm mt-1 max-w-lg mx-auto">
+        Khi bạn bấm các nút bên dưới, Frontend SDK sẽ tự động đính kèm W3C TraceContext và gửi sang Express backend. Hãy quan sát Live Topology Map cập nhật theo thời gian thực!
+      </p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <!-- Card 1: Checkout -->
+      <div class="bg-gray-900/60 border border-gray-800 rounded-2xl p-6 hover:border-violet-500/40 transition">
+        <div class="flex items-center space-x-3 mb-4">
+          <div class="w-10 h-10 rounded-xl bg-violet-500/10 text-violet-400 flex items-center justify-center text-xl font-bold">🛒</div>
+          <div>
+            <h3 class="font-bold text-white text-base">Thanh Toán Giỏ Hàng</h3>
+            <span class="text-xs text-gray-500 font-mono">POST /api/orders (Redis + Express :3001 + Fastify :3002 + DB)</span>
+          </div>
+        </div>
+        <p class="text-gray-400 text-xs mb-5">
+          Mô phỏng Component <code class="text-violet-400 font-mono">CheckoutButton</code> gọi API đặt hàng. Tự động liên kết chuỗi distributed tracing: Redis Cache &rarr; Inventory Microservice (:3001) &rarr; Fastify Notification (:3002) &rarr; PostgreSQL.
+        </p>
+        <button id="btnCheckout" class="w-full py-2.5 bg-violet-600 hover:bg-violet-500 text-white rounded-xl text-xs font-bold transition shadow-md shadow-violet-600/20">
+          Đặt Mua Ngay (Multi-Service Flow)
+        </button>
+
+      </div>
+
+      <!-- Card 2: Users List -->
+      <div class="bg-gray-900/60 border border-gray-800 rounded-2xl p-6 hover:border-emerald-500/40 transition">
+        <div class="flex items-center space-x-3 mb-4">
+          <div class="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center text-xl font-bold">👥</div>
+          <div>
+            <h3 class="font-bold text-white text-base">Xem Khách Hàng</h3>
+            <span class="text-xs text-gray-500 font-mono">GET /api/users (Postgres DB)</span>
+          </div>
+        </div>
+        <p class="text-gray-400 text-xs mb-5">
+          Mô phỏng Component <code class="text-emerald-400 font-mono">UserDirectory</code> tải danh sách người dùng từ PostgreSQL.
+        </p>
+        <button id="btnUsers" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition shadow-md shadow-emerald-600/20">
+          Tải Danh Sách Users
+        </button>
+      </div>
+
+      <!-- Card 3: External API -->
+      <div class="bg-gray-900/60 border border-gray-800 rounded-2xl p-6 hover:border-cyan-500/40 transition">
+        <div class="flex items-center space-x-3 mb-4">
+          <div class="w-10 h-10 rounded-xl bg-cyan-500/10 text-cyan-400 flex items-center justify-center text-xl font-bold">🌐</div>
+          <div>
+            <h3 class="font-bold text-white text-base">Gọi API Bên Ngoài</h3>
+            <span class="text-xs text-gray-500 font-mono">GET /api/external-call (Fetch Outgoing)</span>
+          </div>
+        </div>
+        <p class="text-gray-400 text-xs mb-5">
+          Mô phỏng Component <code class="text-cyan-400 font-mono">ExchangeRateWidget</code> gọi service bên thứ 3 qua backend.
+        </p>
+        <button id="btnExternal" class="w-full py-2.5 bg-cyan-600 hover:bg-cyan-500 text-white rounded-xl text-xs font-bold transition shadow-md shadow-cyan-600/20">
+          Gọi External Service
+        </button>
+      </div>
+
+      <!-- Card 4: Prisma ORM -->
+      <div class="bg-gray-900/60 border border-gray-800 rounded-2xl p-6 hover:border-indigo-500/40 transition">
+        <div class="flex items-center space-x-3 mb-4">
+          <div class="w-10 h-10 rounded-xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center text-xl font-bold">🗄️</div>
+          <div>
+            <h3 class="font-bold text-white text-base">Prisma ORM Query</h3>
+            <span class="text-xs text-gray-500 font-mono">GET /api/prisma-test (User.findUnique)</span>
+          </div>
+        </div>
+        <p class="text-gray-400 text-xs mb-5">
+          Mô phỏng Component <code class="text-indigo-400 font-mono">ProfileViewer</code> truy vấn thông qua Prisma middleware.
+        </p>
+        <button id="btnPrisma" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold transition shadow-md shadow-indigo-600/20">
+          Truy Vấn Qua Prisma
+        </button>
+      </div>
+    </div>
+
+    <!-- Live Result Output -->
+    <div class="mt-8 bg-gray-950/80 border border-gray-800 rounded-2xl p-4 font-mono text-xs">
+      <div class="flex items-center justify-between pb-2 border-b border-gray-800 text-gray-400">
+        <span>Console Output</span>
+        <span id="callStatus" class="text-emerald-400 font-semibold">Ready</span>
+      </div>
+      <pre id="outputLog" class="p-3 text-gray-300 max-h-36 overflow-y-auto whitespace-pre-wrap">Chưa có request nào được gửi.</pre>
+    </div>
+  </main>
+
+  <footer class="border-t border-gray-900 py-4 text-center text-xs text-gray-600">
+    TraceLens Framework-agnostic Distributed Tracing System • 2026
+  </footer>
+
+  <!-- TraceLens Frontend SDK Simulation Script -->
+  <script>
+    // Giả lập logic của @tracelens/browser
+    function randomHex(bytes) {
+      const arr = new Uint8Array(bytes);
+      crypto.getRandomValues(arr);
+      return Array.from(arr, b => b.toString(16).padStart(2, '0')).join('');
+    }
+
+    async function traceFetch(url, options = {}, component = 'WebShopUI', action = 'click') {
+      const traceId = randomHex(16);
+      const spanId = randomHex(8);
+      const traceparent = `00-${traceId}-${spanId}-01`;
+
+      const headers = {
+        ...(options.headers || {}),
+        'traceparent': traceparent,
+        'x-tracelens-client': JSON.stringify({
+          service: 'React Web App',
+          component: component,
+          action: action,
+        })
+      };
+
+      const res = await fetch(url, { ...options, headers });
+      const data = await res.json().catch(() => ({ status: res.status, statusText: res.statusText }));
+      if (!res.ok) {
+        throw new Error(data?.error || `HTTP ${res.status}: ${res.statusText}`);
+      }
+      return data;
+    }
+
+    const outputLog = document.getElementById('outputLog');
+    const callStatus = document.getElementById('callStatus');
+
+    function log(title, data, isError = false) {
+      callStatus.innerText = isError ? 'Thất bại (Error)!' : 'Thành công (OK)!';
+      callStatus.className = isError ? 'text-rose-400 font-semibold' : 'text-emerald-400 font-semibold';
+      const formatted = typeof data === 'string' ? data : JSON.stringify(data, null, 2);
+      outputLog.innerText = `[${new Date().toLocaleTimeString()}] ${title}\n` + formatted;
+    }
+
+    async function handleAction(btnId, loadingMsg, successTitle, fn) {
+      const btn = document.getElementById(btnId);
+      if (!btn) return;
+      btn.disabled = true;
+      btn.classList.add('opacity-75', 'cursor-not-allowed');
+      callStatus.className = 'text-amber-400 font-semibold';
+      callStatus.innerText = loadingMsg;
+      try {
+        const result = await fn();
+        log(successTitle, result, false);
+      } catch (err) {
+        log(`Lỗi gọi API: ${err.message}`, { error: err.message }, true);
+      } finally {
+        btn.disabled = false;
+        btn.classList.remove('opacity-75', 'cursor-not-allowed');
+      }
+    }
+
+    document.getElementById('btnCheckout').addEventListener('click', () => {
+      handleAction('btnCheckout', 'Sending POST /api/orders...', 'Checkout completed', () => {
+        return traceFetch('/api/orders', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ items: 3 })
+        }, 'CheckoutButton', 'checkout_submit');
+      });
+    });
+
+    document.getElementById('btnUsers').addEventListener('click', () => {
+      handleAction('btnUsers', 'Sending GET /api/users...', 'Users fetched', () => {
+        return traceFetch('/api/users', {}, 'UserDirectory', 'fetch_users');
+      });
+    });
+
+    document.getElementById('btnExternal').addEventListener('click', () => {
+      handleAction('btnExternal', 'Sending GET /api/external-call...', 'External call finished', () => {
+        return traceFetch('/api/external-call', {}, 'ExchangeRateWidget', 'fetch_external_rate');
+      });
+    });
+
+    document.getElementById('btnPrisma').addEventListener('click', () => {
+      handleAction('btnPrisma', 'Sending GET /api/prisma-test...', 'Prisma query finished', () => {
+        return traceFetch('/api/prisma-test', {}, 'ProfileViewer', 'load_profile');
+      });
+    });
+  </script>
+</body>
+</html>
